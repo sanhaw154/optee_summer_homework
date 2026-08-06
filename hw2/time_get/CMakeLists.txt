@@ -1,4 +1,4 @@
-project (optee_example_timeGet C)
+project (optee_example_time_get C)
 
 set (SRC host/main.c)
 

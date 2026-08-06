@@ -2,10 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #include <tee_client_api.h> //position : /home/sanhow/optee-qemu-v8/optee_client/libteec/include/tee_client_api.h
 
 #include <bit_operation_ta.h>  //lib position : ~/optee-qemu-v8/optee_client/out/libteec
+
+static void discard_input_line(void)
+{
+	int ch = 0;
+
+	while ((ch = getchar()) != '\n' && ch != EOF)
+		;
+}
 
 static void operation(TEEC_Session *sess, uint32_t cmd_id, uint32_t value, uint32_t bit_index, const char *name)
 {
@@ -58,32 +67,61 @@ int main(void)
 		errx(1, "TEEC_OpenSession failed with code 0x%x origin 0x%x",
 		     res, err_origin);
 
-	do{
+	do { //choose condition
+		int ret = 0;
+
 		printf("Please select the operation:\n");
 		printf("1. Set Bit\n");
 		printf("2. Clear Bit\n");
 		printf("3. Inverse Bit\n");
-		scanf("%u", &choice);
-		if(choice < 1 || choice > 3) {
+
+		ret = scanf("%" SCNu32, &choice);
+
+		if (ret == EOF) {
+			printf("Input ended.\n");
+			goto out;
+		}
+
+		if (ret != 1) {
+			printf("Invalid input: please enter a number.\n");
+			discard_input_line();
+			continue;
+		}
+
+		if (choice < 1 || choice > 3)
 			printf("Invalid choice, please try again.\n");
+
+	} while (choice < 1 || choice > 3);
+
+	do {
+		int ret = 0;
+
+		printf("Please enter x and y:\n");
+
+		ret = scanf("%" SCNu64 " %" SCNu32, &input_x, &y);
+
+		if (ret == EOF) {
+			printf("Input ended.\n");
+			goto out;
 		}
-	}while(choice < 1 || choice > 3);
 
-	do 
-	{
-		printf("Please enter the x and y\n");
-		scanf("%lu %u", &input_x, &y);
-
-		if (input_x > 0xFFFFFFFFULL) 
-		{
-			printf("Invalid x value, must be between 0 and 0xFFFFFFFF.\n");
+		/*
+		* 這裡必須是 2，因為預期成功解析 input_x 和 y
+		* 兩個數值。
+		*/
+		if (ret != 2) {
+			printf("Invalid input: please enter two numbers.\n");
+			discard_input_line();
+			continue;
 		}
 
-    	if (y > 31)
-		{
-        	printf("Invalid y value, must be between 0 and 31. Please try again.\n");
-    	}
-	} while (input_x > 0xFFFFFFFFULL || y > 31);
+		if (input_x > UINT32_MAX)
+			printf("Invalid x: range is 0 to 0xFFFFFFFF.\n");
+
+		if (y >= 32)
+			printf("Invalid y: range is 0 to 31.\n");
+
+	} while (input_x > UINT32_MAX || y >= 32);
 
 	x = (uint32_t)input_x;
 
@@ -101,8 +139,8 @@ int main(void)
 		errx(1, "Invalid choice");
 	}
 
+	out:
 	TEEC_CloseSession(&sess);
 	TEEC_FinalizeContext(&ctx);
-
 	return 0;
 }

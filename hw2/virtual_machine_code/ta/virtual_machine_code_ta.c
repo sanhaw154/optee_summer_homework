@@ -52,7 +52,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 
 	if (param_types != exp_param_types)
 		return TEE_ERROR_BAD_PARAMETERS;
-	
+
     (void)params;
     (void)sess_ctx;
 
@@ -77,6 +77,9 @@ static TEE_Result execute(uint32_t param_types, TEE_Param params[4])
 
     if (param_types != exp_param_types)
         return TEE_ERROR_BAD_PARAMETERS;
+
+    if (params[0].value.a > UINT16_MAX)
+	    return TEE_ERROR_BAD_PARAMETERS;
 
     uint32_t instruction = params[0].value.a & 0xFFFF;
     uint32_t opcode = (instruction >> 12) & 0xF;
@@ -115,6 +118,6 @@ TEE_Result TA_InvokeCommandEntryPoint(void __unused *sess_ctx,
 		case TA_VIRTUAL_MACHINE_CODE_CMD_EXECUTE:
     		return execute(param_types, params);
 	}
-	
+
 	return TEE_ERROR_BAD_PARAMETERS;
 }

@@ -1,0 +1,17 @@
+# Host build outputs
+*.o
+optee_example_*
+
+# TA build outputs
+*.d
+*.cmd
+*.dmp
+*.elf
+*.map
+*.ta
+dyn_list
+ta.lds
+out/
+
+# Editor temporary files
+*.swp

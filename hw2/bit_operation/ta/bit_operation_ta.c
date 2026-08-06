@@ -52,7 +52,7 @@ TEE_Result TA_OpenSessionEntryPoint(uint32_t param_types,
 
 	if (param_types != exp_param_types)
 		return TEE_ERROR_BAD_PARAMETERS;
-	
+
     (void)params;
     (void)sess_ctx;
 
@@ -78,6 +78,10 @@ static TEE_Result setbit(uint32_t param_types, TEE_Param params[4])
 	if (param_types != exp_param_types)
 		return TEE_ERROR_BAD_PARAMETERS;
 
+	if (params[0].value.b >= sizeof(uint32_t) * 8)
+
+	return TEE_ERROR_BAD_PARAMETERS;
+
 	params[1].value.a = params[0].value.a | (1U << params[0].value.b);
 
 	return TEE_SUCCESS;
@@ -93,6 +97,9 @@ static TEE_Result clearbit(uint32_t param_types, TEE_Param params[4])
 	if (param_types != exp_param_types)
 		return TEE_ERROR_BAD_PARAMETERS;
 
+	if (params[0].value.b >= sizeof(uint32_t) * 8)
+		return TEE_ERROR_BAD_PARAMETERS;
+
 	params[1].value.a = params[0].value.a & ~(1U << params[0].value.b);
 
 	return TEE_SUCCESS;
@@ -106,6 +113,9 @@ static TEE_Result inversebit(uint32_t param_types, TEE_Param params[4])
 						   TEE_PARAM_TYPE_NONE);
 
 	if (param_types != exp_param_types)
+		return TEE_ERROR_BAD_PARAMETERS;
+
+	if (params[0].value.b >= sizeof(uint32_t) * 8)
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	params[1].value.a = params[0].value.a ^ (1U << params[0].value.b);
